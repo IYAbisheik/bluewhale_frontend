@@ -1,0 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    display: flex;
+    height: 50em;
+}
+
+.centerBox {
+    width: 95em;
+    height: 45em;
+    box-shadow: 10px 10px 55px black;
+    margin: auto;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.box {
+    width: 20em;
+}
+
+.loginButton {
+    width: 5em;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.usernameAndpassword {
+    width: 32%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.login {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid black;
+    padding: 5em;
+    border-radius: 5px;
+    gap: 15px;
+}
+
+.bottomSpace {
+    margin-bottom: 15px;
+}
+
+.icon {
+    width: 16px;
+    height: 16px;
+}
+
+.removeInpborder {
+    outline: none;
+    border-bottom-width: 0;
+    border-top-width: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+}
+
+.usernameSignup,
+.passwordSignup {
+    display: flex;
+    border-bottom: 1px solid black;
+    padding-bottom: 5px;
+    gap: 10px;
+}
+
+.employeeImg {
+    width: 20em;
+    height: 30em;
+}

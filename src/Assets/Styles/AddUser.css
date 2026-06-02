@@ -1,0 +1,18 @@
+.adduserForm{
+    width: 20em;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid black;
+    padding: 3em;
+    gap: 10px;
+}
+.adduserPage{
+    height: 56.7em;
+    background-position: center;
+    background-size: cover;
+}
+.submitDetails button{
+    width: 5em;
+    padding: 5px;
+    border-radius: 5px;
+}

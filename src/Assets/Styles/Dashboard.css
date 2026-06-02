@@ -1,0 +1,54 @@
+.adduserAndLogoutBtn{
+    display: flex;
+    justify-content: space-between;
+}
+.upperPart{
+    height: 20em;
+}
+.parts{
+    width: 95%; 
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: white;
+    opacity: 0.8;
+}
+.lowerPart{
+    overflow: scroll;
+    overflow-x: hidden;
+    height: 30em;
+}
+.dashboardPage{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5em;
+    background: #570000;
+    background: radial-gradient(circle, rgba(87, 0, 0, 1)26%, rgba(148, 187, 233, 1) 100%);
+}
+.dashboardtexts{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5em;
+}
+.adduserAndLogoutBtn button{
+    padding: 15px;
+    margin: 2em;
+    color: white;
+    background-color: rgb(14, 81, 145);
+    border-radius: 5px;
+}
+.noRecordtext{
+    display: flex;
+    justify-content: center;
+    margin-top: 8em;
+    font-family:'Courier New', Courier, monospace;
+}
+.cardData{
+    text-align: center;
+}
+.editAnddeleteBtn button{
+    padding: 5px;
+    margin-right: 15px;
+    width: 5em;
+}
