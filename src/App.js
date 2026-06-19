@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Login from "./Form/Login";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -10,13 +10,21 @@ import Privateroute from "./Form/Privaterouter";
 import PublicRouter from "./Form/Publicroute";
 import "../src/Assets/Styles/index.css"
 import { Toaster } from "sonner";
+import VerifyOtp from "./page/verifyOtp";
+import VerifyEmail from "./page/verifyEmail";
+import { connectSocket } from "./socket/socket";
+import JoinRoom from "./components/chat/JoinRoom";
+import CreateRoom from "./components/chat/CreateRoom";
+import RoomCreated from "./components/chat/RoomCreated";
 
 const router = createBrowserRouter([
   {
     path: '/', element: <PublicRouter/>, errorElement: <Errorpage />,
     children:[
       {path: '/', element: <Login/>},
-      {path: '/register', element: <Register/>}
+      {path: '/register', element: <Register/>},
+      {path: '/verify-email/:token', element: <VerifyEmail/>},
+      {path: '/verify-otp', element: <VerifyOtp/>}
     ]
   },
   {
@@ -24,12 +32,33 @@ const router = createBrowserRouter([
     children:[
       {path: '/dashboard', element: <Dashboard/>},
       {path: '/adduser', element: <AddUser/>},
-      {path: '/edituser/:userid', element: <AddUser/>}
+      {path: '/edituser/:userid', element: <AddUser/>},
+      {path: '/create-room', element: <CreateRoom/>},
+      {path: '/join-room', element: <JoinRoom/>},
+      {path: '/room-created', element: <RoomCreated/>}    
     ]
   }
 ])
 
 function App() {
+
+      useEffect(() => {
+
+        const token =
+            localStorage.getItem(
+                "accessToken"
+            );
+
+        if (token) {
+
+            connectSocket(
+                token
+            );
+
+        }
+
+    }, []);
+
   return (
     <div>
       <Toaster position="top-right" richColors />

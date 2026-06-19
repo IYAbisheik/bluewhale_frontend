@@ -1,278 +1,428 @@
-import React, { useState, useEffect } from "react";
-import '../Assets/Styles/Dashboard.css'
-import man from '../Assets/Images/man.png'
-import others from '../Assets/Images/transgender.png'
-import women from '../Assets/Images/woman.png'
+import React, { useState, useEffect, useRef } from "react";
+import man from "../Assets/Images/man.png";
+import others from "../Assets/Images/transgender.png";
+import women from "../Assets/Images/woman.png";
+import homePage from "../Assets/Images/homePage.jpg";
 import { useNavigate } from "react-router-dom";
-import Card from 'react-bootstrap/Card';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
+import Card from "react-bootstrap/Card";
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
 import { toast } from "sonner";
+import { disable2FAApi, generate2FAApi, verify2FAApi } from "../api/auth/twoFactorSlice";
+import { token } from "../utils/utils";
+import { logout } from "../api/auth/authApi";
+import { Socket } from "socket.io-client";
+import { disconnectSocket } from "../socket/socket";
 
 const Dashboard = () => {
-
     const navigate = useNavigate();
+    const videoRef = useRef(null);
+    const hiddenVideoRef = useRef(null);
+    const canvasRef = useRef(null);
 
-    const [adminData, setAdminData] = useState([])
+    const [adminData, setAdminData] = useState([]);
+    const [preview, setPreview] = useState(null);
+    const [duration, setDuration] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+    const [showQRModal, setShowQRModal] = useState(false);
+    const [qrCode, setQrCode] = useState("");
+    const [otp, setOtp] = useState("");
 
-    const loggedUser = JSON.parse(localStorage.getItem('Currentuser'));
-    const allUsers = JSON.parse(localStorage.getItem('Users'))
+    const loggedUser = JSON.parse(localStorage.getItem("Currentuser"));
+    const allUsers = JSON.parse(localStorage.getItem("Users")) || [];
 
     const userData = loggedUser?.users;
 
     useEffect(() => {
         if (userData) {
-            setAdminData(userData)
+            setAdminData(userData);
         }
 
-        // Get current 2FA status
         if (loggedUser?.is2FAEnabled) {
             setIs2FAEnabled(true);
         }
+    }, []);
 
-    }, [])
+    useEffect(() => {
+        const closeMenu = () => setShowProfileMenu(false);
 
-    const handleLogout = () => {
-        localStorage.removeItem('isloggedIn')
-        localStorage.removeItem('Currentuser')
-        toast.success("Logout successfully")
-        navigate('/')
-    }
-
-    // Enable / Disable 2FA
-    const handle2FA = () => {
-
-        const updatedCurrentUser = {
-            ...loggedUser,
-            is2FAEnabled: !is2FAEnabled
+        if (showProfileMenu) {
+            document.addEventListener("click", closeMenu);
         }
 
-        // Update all users list
-        const updatedAllUsers = allUsers.map((user) =>
-            user.id === loggedUser.id
-                ? updatedCurrentUser
-                : user
-        )
+        return () => {
+            document.removeEventListener("click", closeMenu);
+        };
+    }, [showProfileMenu]);
+    const handleLogout = async () => {
+        // if (window?.FB) {
+        //     window.FB.logout(() => {
+        //     })
+        // }
+        disconnectSocket();
+        const response = await logout();
+        console.log("LINE61", response);
+        localStorage.clear();
+        toast.success("Logout successfully");
+        navigate("/");
+    };
 
-        // Save in localStorage
-        localStorage.setItem(
-            'Currentuser',
-            JSON.stringify(updatedCurrentUser)
-        )
+    const handleTimelineHover = (e) => {
+        if (!duration) return;
 
-        localStorage.setItem(
-            'Users',
-            JSON.stringify(updatedAllUsers)
-        )
+        const rect = e.currentTarget.getBoundingClientRect();
 
-        setIs2FAEnabled(!is2FAEnabled)
+        const x = e.clientX - rect.left;
 
-        {
-            !is2FAEnabled
-                ? toast.success("2FA Enabled Successfully")
-                : toast.error("2FA Disabled Successfully")
+        const percentage = x / rect.width;
+
+        const time = percentage * duration;
+
+        hiddenVideoRef.current.currentTime = time;
+
+        hiddenVideoRef.current.onseeked = () => {
+            const canvas = canvasRef.current;
+
+            const ctx = canvas.getContext("2d");
+
+            canvas.width = 160;
+            canvas.height = 90;
+
+            ctx.drawImage(
+                hiddenVideoRef.current,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+            setPreview({
+                x,
+                image: canvas.toDataURL(),
+                time,
+            });
+        };
+    };
+
+    const handleTimelineLeave = () => {
+        setPreview(null);
+    };
+
+    const handle2FA = async () => {
+
+        // Disable case
+        if (is2FAEnabled) {
+
+            try {
+
+                const response =
+                    await disable2FAApi();
+
+                toast.success(
+                    response.data.message
+                );
+
+                setIs2FAEnabled(false);
+
+            } catch (error) {
+
+                toast.error(
+                    error.response?.data?.message
+                );
+            }
+
+            return;
         }
 
+        // Enable case
+        try {
 
-    }
+            const response =
+                await generate2FAApi();
+
+            setQrCode(
+                response.data.qrCode
+            );
+
+            setShowQRModal(true);
+
+        } catch (error) {
+
+            toast.error(
+                error.response?.data?.message
+            );
+        }
+    };
+
+    const handleVerify2FA = async () => {
+
+        if (!otp.trim()) {
+            toast.error("Enter OTP");
+            return;
+        }
+
+        try {
+
+            const response =
+                await verify2FAApi({
+                    token: otp,
+                });
+
+            toast.success(
+                response.data.message ||
+                "2FA Enabled Successfully"
+            );
+
+            setIs2FAEnabled(true);
+            setShowQRModal(false);
+            setOtp("");
+
+        } catch (error) {
+
+            console.log(error);
+
+            toast.error(
+                error.response?.data?.message ||
+                "Invalid OTP"
+            );
+        }
+    };
 
     const handleDelete = (userid) => {
-
         const updatedData = adminData.filter(
             (user) => userid !== user.userid
-        )
+        );
 
         const updatedCurrent = {
             ...loggedUser,
-            users: updatedData
-        }
+            users: updatedData,
+        };
 
         const updatedAll = allUsers.map((user) =>
-            user.id === loggedUser.id
-                ? updatedCurrent
-                : user
+            user.id === loggedUser.id ? updatedCurrent : user
         );
 
-        setAdminData(updatedData)
+        setAdminData(updatedData);
 
         localStorage.setItem(
-            'Currentuser',
+            "Currentuser",
             JSON.stringify(updatedCurrent)
-        )
+        );
 
         localStorage.setItem(
-            'Users',
+            "Users",
             JSON.stringify(updatedAll)
-        )
-    }
+        );
+
+        toast.success("User deleted successfully");
+    };
 
     const handleEdit = (userid) => {
-        navigate(`/edituser/${userid}`)
-    }
+        navigate(`/edituser/${userid}`);
+    };
 
     return (
-        <div className="dashboardPage">
+        <div
+            className="min-h-screen flex flex-col items-center gap-10 bg-cover bg-center bg-no-repeat py-4"
+            style={{
+                backgroundImage: `url(${homePage})`,
+            }}
+        >
+            {/* Header Section */}
+            <div className="w-[95%] h-60 border-gray-300 rounded-xl shadow-lg">
+                <div className="flex items-center justify-between px-8 py-6">
 
-            <div
-                className="upperPart parts"
-                style={{ marginTop: '10px' }}
-            >
+                    {/* Logo / Title */}
+                    <h1 className="text-4xl font-extrabold text-blue-700 tracking-wide">
+                        WhaleIQ
+                    </h1>
 
-                <div className="adduserAndLogoutBtn">
-
-                    <button
-                        onClick={() => navigate('/adduser')}
-                        className="adduserButton"
-                    >
-                        AddUser
-                    </button>
-
-                    {/* 2FA BUTTON */}
-                    <div>
+                    {/* Profile Dropdown */}
+                    <div className="relative" onClick={(e) => e.stopPropagation()}>
                         <button
-                            onClick={handle2FA}
-                            style={{
-                                backgroundColor: is2FAEnabled ? 'orange' : '#0e5191',
-                                color: 'white',
-                                padding: '15px',
-                                margin: '2em',
-                            }}
+                            onClick={() =>
+                                setShowProfileMenu(!showProfileMenu)
+                            }
+                            className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-700 text-white text-xl font-bold shadow-md hover:bg-blue-800 transition"
                         >
-                            {is2FAEnabled
-                                ? 'Disable 2FA'
-                                : 'Enable 2FA'}
+                            {loggedUser?.firstname
+                                ?.charAt(0)
+                                ?.toUpperCase()}
                         </button>
 
-                        <button
-                            onClick={handleLogout}
-                            className="logoutButton"
-                        >
-                            Logout
-                        </button>
-                    </div>
+                        {showProfileMenu && (
+                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+                                <button
+                                    onClick={() => {
+                                        handle2FA();
+                                        setShowProfileMenu(false);
+                                    }}
+                                    className="w-full px-4 py-3 text-left hover:bg-gray-100"
+                                >
+                                    {is2FAEnabled
+                                        ? "Disable 2FA"
+                                        : "Enable 2FA"}
+                                </button>
 
-                </div>
+                                <button
+                                    className="w-full px-4 py-3 text-left hover:bg-gray-100"
+                                    onClick={() => navigate("/play-uno")}>
+                                    Play uno🃏
+                                </button>
 
-                <div className="dashboardtexts">
-                    <h2 style={{ fontWeight: '1000' }}>
-                        DASHBOARD
-                    </h2>
+                                <button
+                                    onClick={() => {
+                                        handleLogout()
+                                        // setShowProhandleLogoutfileMenu(false);
+                                    }}
+                                    className="w-full px-4 py-3 text-left text-red-600 hover:bg-gray-100"
+                                >
+                                    Logout
+                                </button>
+                            </div>
+                        )}
 
-                    <h3>
-                        Welcome {loggedUser?.firstname} {loggedUser?.lastname}!!!
-                    </h3>
+                        {
+                            showQRModal && (
+                                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-                </div>
+                                    <div className="bg-white rounded-xl p-6 w-[400px] shadow-xl">
 
-            </div>
+                                        <h2 className="text-2xl font-bold text-center mb-4">
+                                            Enable 2FA
+                                        </h2>
 
-            <div
-                className="lowerPart parts"
-                style={{ marginBottom: '17px' }}
-            >
+                                        <div className="flex justify-center">
+                                            <img
+                                                src={qrCode}
+                                                alt="2FA QR Code"
+                                                className="w-64 h-64"
+                                            />
+                                        </div>
 
-                {loggedUser?.users?.length === 0 ? (
-                    <h3 className="noRecordtext">
-                        No record found!
-                    </h3>
-                ) : (
-                    <div
-                        className="cardData"
-                        style={{
-                            marginLeft: '10px',
-                            marginRight: '10px'
-                        }}
-                    >
+                                        <p className="text-center text-gray-600 mt-4">
+                                            Scan this QR code using Google Authenticator
+                                        </p>
 
-                        <Row xs={1} md={3} className="g-4">
+                                        <input
+                                            type="text"
+                                            value={otp}
+                                            onChange={(e) =>
+                                                setOtp(e.target.value)
+                                            }
+                                            placeholder="Enter OTP"
+                                            maxLength={6}
+                                            className="w-full mt-4 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
 
-                            {loggedUser?.users?.map((user, idx) => (
+                                        <div className="flex gap-3 mt-5">
 
-                                <Col key={idx}>
-
-                                    <Card>
-
-                                        <Card.Body>
-
-                                            <button>
-
-                                                {user.gender === 'Male' ? (
-                                                    <Card.Img
-                                                        src={man}
-                                                        className="w-16 h-16 rounded-full mx-auto"
-                                                    />
-                                                ) : user.gender === 'Female' ? (
-                                                    <Card.Img
-                                                        src={women}
-                                                        className="w-16 h-16 mx-auto"
-                                                    />
-                                                ) : (
-                                                    <Card.Img
-                                                        src={others}
-                                                        className="w-16 h-16 mx-auto"
-                                                    />
-                                                )}
-
+                                            <button
+                                                onClick={handleVerify2FA}
+                                                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+                                            >
+                                                Verify OTP
                                             </button>
 
-                                            <Card.Title>
-                                                {user?.username}
-                                            </Card.Title>
+                                            <button
+                                                onClick={() => {
+                                                    setShowQRModal(false);
+                                                    setOtp("");
+                                                }}
+                                                className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600"
+                                            >
+                                                Cancel
+                                            </button>
 
-                                            <Card.Title>
-                                                {user?.gender}
-                                            </Card.Title>
+                                        </div>
 
-                                            <Card.Title>
-                                                {user?.dob}
-                                            </Card.Title>
+                                    </div>
 
-                                            <Card.Title>
-                                                {user?.role}
-                                            </Card.Title>
-
-                                            <div className="editAnddeleteBtn">
-
-                                                <button
-                                                    onClick={() => handleEdit(user.userid)}
-                                                    style={{
-                                                        backgroundColor: 'green',
-                                                        color: 'white'
-                                                    }}
-                                                >
-                                                    Edit
-                                                </button>
-
-                                                <button
-                                                    onClick={() => handleDelete(user.userid)}
-                                                    style={{
-                                                        backgroundColor: 'red',
-                                                        color: 'white'
-                                                    }}
-                                                >
-                                                    Delete
-                                                </button>
-
-                                            </div>
-
-                                        </Card.Body>
-
-                                    </Card>
-
-                                </Col>
-
-                            ))}
-
-                        </Row>
-
+                                </div>
+                            )
+                        }
                     </div>
-                )}
+
+                </div>
+            </div>
+
+            <div className="flex gap-4">
+
+                <button
+                    onClick={() =>
+                        navigate("/create-room")
+                    }
+                    className="bg-blue-600 text-white px-5 py-2 rounded-lg"
+                >
+                    Create Room
+                </button>
+
+                <button
+                    onClick={() =>
+                        navigate("/join-room")
+                    }
+                    className="bg-green-600 text-white px-5 py-2 rounded-lg"
+                >
+                    Join Room
+                </button>
 
             </div>
 
+            <div className="w-[95%] rounded-2xl overflow-hidden bg-black shadow-xl">
+
+                <video
+                    ref={videoRef}
+                    controls
+                    className="w-full h-[500px]"
+                    onLoadedMetadata={() =>
+                        setDuration(videoRef.current.duration)
+                    }
+                >
+                    <source src={"/file_example_MP4_640_3MG.mp4"} type="video/mp4" />
+                </video>
+
+                {/* Timeline Preview Area */}
+                <div
+                    className="relative h-6 cursor-pointer"
+                    onMouseMove={handleTimelineHover}
+                    onMouseLeave={handleTimelineLeave}
+                >
+                    {preview && (
+                        <div
+                            className="absolute bottom-8 -translate-x-1/2"
+                            style={{ left: preview.x }}
+                        >
+                            <img
+                                src={preview.image}
+                                alt="preview"
+                                className="w-40 rounded-lg border border-white shadow-2xl"
+                            />
+
+                            <div className="bg-black text-white text-xs text-center py-1 rounded-b-lg">
+                                {Math.floor(preview.time / 60)}:
+                                {String(
+                                    Math.floor(preview.time % 60)
+                                ).padStart(2, "0")}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <video
+                    ref={hiddenVideoRef}
+                    src={"/file_example_MP4_640_3MG.mp4"}
+                    style={{ display: "none" }}
+                />
+
+                <canvas
+                    ref={canvasRef}
+                    style={{ display: "none" }}
+                />
+
+            </div>
         </div>
-    )
-}
+    );
+};
 
 export default Dashboard;

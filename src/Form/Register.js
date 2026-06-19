@@ -1,16 +1,14 @@
 import { React, useEffect, useState } from "react";
 import '../Assets/Styles/Register.css'
-import user from '../Assets/Images/user.png'
-import username from '../Assets/Images/username.png'
-import unlock from '../Assets/Images/unlock.png'
 import { Link, useNavigate } from "react-router-dom";
-import { validPassword, validNames, validUsername } from "./Regex";
-import { bgImg, InputField, inputField, signUpBgVideo } from "../utils/utils"
+import { validPassword, validNames, validUsername, validEmail } from "./Regex";
+import { InputField, signUpBgVideo } from "../utils/utils"
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
-import { signUpBgImage } from "../utils/utils"
-import { User, Lock } from "lucide-react";
 import { registerApi } from "../api/auth/authApi";
+import { toast } from "sonner";
+import Loading from "../components/loading";
+import { User, Mail, AtSign, Lock, BadgeCheck, Eye, EyeOff } from "lucide-react";
 
 const FACEBOOK_APP_ID = process.env.REACT_APP_FACEBOOK_APP_ID;
 
@@ -19,12 +17,16 @@ const Register = () => {
         id: "",
         firstname: "",
         lastname: "",
+        email: "",
         username: "",
         password: "",
         users: [],
         confirmpassword: ""
     });
-
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [focusedField, setFocusedField] = useState("");
+    const [loading, setLoading] = useState(false)
     const [error, setError] = useState("");
 
     const navigate = useNavigate();
@@ -160,95 +162,69 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
 
-    e.preventDefault();
+        e.preventDefault();
 
-    setError('');
+        setError('');
 
-    try {
+        try {
 
-        // VALIDATIONS
+            if (
+                !signupData.firstname ||
+                !signupData.lastname ||
+                !signupData.username ||
+                !signupData.email ||
+                !signupData.password ||
+                !signupData.confirmpassword
+            ) {
+                toast.error("Fill all the details!")
+            } else if (
+                !validNames.test(signupData.firstname) ||
+                !validNames.test(signupData.lastname)
+            ) {
+                toast.error("Firstname or lastname is invalid!");
+            } else if (!validUsername.test(signupData.username)) {
+                toast.error(
+                    "Username must be 3-20 characters and contain only letters, numbers, and underscores."
+                );
+            } else if (!validEmail.test(signupData.email)) {
+                toast.error("Please enter a valid email address.");
+            } else if (!validPassword.test(signupData.password)) {
+                toast.error(
+                    "Password must be 8-16 characters and contain at least one uppercase letter, one lowercase letter, and one number."
+                );
+            } else if (signupData.password !== signupData.confirmpassword) {
+                toast.error("Passwords do not match");
+            } else {
+                const payload = {
+                    name: `${signupData.firstname} ${signupData.lastname}`,
+                    userName: signupData.username,
+                    email: signupData.email,
+                    password: signupData.password,
+                };
 
-        if (
-            !signupData.firstname ||
-            !signupData.lastname ||
-            !signupData.username ||
-            !signupData.password ||
-            !signupData.confirmpassword
-        ) {
-            setError('Fill all the details!');
-            return;
-        }
+                setLoading(true);   // Start loader
 
-        if (
-            validNames.test(signupData.firstname) ||
-            validNames.test(signupData.lastname)
-        ) {
-            setError(
-                'Firstname or lastname is invalid!'
+                const response = await registerApi(payload);
+
+                console.log("Register response :", response);
+
+                toast.success("User registered successfully");
+
+                navigate("/");
+            }
+        } catch (error) {
+            console.log(error);
+
+            toast.error(
+                error.response?.data?.message ||
+                error.message
             );
-            return;
+        } finally {
+            setLoading(false);  // Stop loader
         }
+    };
 
-        if (
-            validUsername.test(
-                signupData.username
-            )
-        ) {
-            setError('Username is invalid!');
-            return;
-        }
-
-        if (
-            !validPassword.test(
-                signupData.password
-            )
-        ) {
-            setError('Password is invalid');
-            return;
-        }
-
-        if (
-            signupData.password !==
-            signupData.confirmpassword
-        ) {
-            setError(
-                'Passwords do not match'
-            );
-            return;
-        }
-
-        // API PAYLOAD
-
-        const payload = {
-            name: `${signupData.firstname} ${signupData.lastname}`,
-            email: signupData.username,
-            password: signupData.password,
-        };
-
-        // API CALL
-
-        const response =
-            await registerApi(payload);
-
-        console.log(
-            'REGISTER RESPONSE:',
-            response
-        );
-
-        alert('User registered successfully');
-
-        navigate('/');
-
-    } catch (error) {
-
-        console.log(error);
-
-        setError(
-            error.response?.data?.message ||
-            error.message
-        );
-    }
-};
+    console.log("LINE251", validNames.test(signupData.firstname), validNames.test(signupData.lastname));
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden">
@@ -266,123 +242,192 @@ const Register = () => {
             <div className="absolute inset-0 bg-black/20"></div>
 
             <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-6">
-                <div className="flex w-full max-w-5xl overflow-hidden rounded-3xl shadow-2xl">
+                {loading && (
+                    <Loading
+                        fullScreen
+                        text="Registering..."
+                    />
+                )}
+                <div className="w-full max-w-4xl bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl p-8 sm:p-10">
 
-                    {/* Left Image */}
-                    <div className="hidden md:block md:w-1/2">
-                        <img
-                            src={bgImg}
-                            alt="Register"
-                            className="h-full w-full object-cover"
+                    {/* Logo */}
+                    <h1 className="text-center text-4xl font-extrabold text-white mb-2">
+                        WhaleIQ
+                    </h1>
+
+                    {/* Page Title */}
+                    <h2 className="text-center text-2xl font-bold text-white mb-6">
+                        Register
+                        {/* Change to Register in Register page */}
+                    </h2>
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+
+                        {/* First Name */}
+                        <InputField
+                            icon={User}
+                            name="firstname"
+                            value={signupData.firstname}
+                            placeholder="Enter First Name"
+                            onChange={handleChange}
+                            focusedField={focusedField}
+                            setFocusedField={setFocusedField}
                         />
-                    </div>
 
-                    {/* Right Form */}
-                    <div className="w-full md:w-1/2 bg-white/10 backdrop-blur-md p-8 sm:p-10">
-                        <h1 className="text-3xl font-bold text-white mb-6">Register</h1>
+                        {/* Last Name */}
+                        <InputField
+                            icon={BadgeCheck}
+                            name="lastname"
+                            value={signupData.lastname}
+                            placeholder="Enter Last Name"
+                            onChange={handleChange}
+                            focusedField={focusedField}
+                            setFocusedField={setFocusedField}
+                        />
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Email */}
+                        <InputField
+                            icon={Mail}
+                            name="email"
+                            value={signupData.email}
+                            placeholder="Enter Email"
+                            onChange={handleChange}
+                            focusedField={focusedField}
+                            setFocusedField={setFocusedField}
+                        />
 
-                            {/* First Name */}
-                            <InputField
-                                placeholder="First Name"
-                                name="firstname"
-                                value={signupData.firstname}
-                                onChange={handleChange}
-                            />
+                        {/* Username */}
+                        <InputField
+                            icon={AtSign}
+                            name="username"
+                            value={signupData.username}
+                            placeholder="Enter Username"
+                            onChange={handleChange}
+                            focusedField={focusedField}
+                            setFocusedField={setFocusedField}
+                        />
 
-                            {/* Last Name */}
-                            <InputField
-                                placeholder="Last Name"
-                                name="lastname"
-                                value={signupData.lastname}
-                                onChange={handleChange}
-                            />
-
-                            {/* Username */}
-                            <InputField
-                                placeholder="Username"
-                                name="username"
-                                value={signupData.username}
-                                onChange={handleChange}
-                            />
-
-                            {/* Password */}
-                            <InputField
-                                type="password"
-                                placeholder="Password"
-                                name="password"
-                                value={signupData.password}
-                                onChange={handleChange}
-                            />
-
-                            {/* Confirm Password */}
-                            <InputField
-                                type="password"
-                                placeholder="Confirm Password"
-                                name="confirmpassword"
-                                value={signupData.confirmpassword}
-                                onChange={handleChange}
-                            />
-
-                            {/* Error */}
-                            {error && (
-                                <div className="text-red-300 text-sm">{error}</div>
-                            )}
-
-                            {/* Button */}
-                            <button
-                                type="submit"
-                                className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
-                            >
-                                Sign up
-                            </button>
-                        </form>
-
-                        {/* Login Link */}
-                        <p className="mt-5 text-sm text-white">
-                            Already have an account?{" "}
-                            <Link to="/" className="text-blue-300 hover:underline">
-                                Login
-                            </Link>
-                        </p>
-
-                        {/* Social Login */}
-                        <div className="mt-8 text-center">
-                            <p className="mb-4 text-sm text-white">Or continue with</p>
-
-                            <div className="flex flex-col items-center gap-3">
-                                {/* Google Button */}
-                                <div className="w-full max-w-[320px] flex justify-center">
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleSuccess}
-                                        onError={handleGoogleError}
-                                        width="320"
-                                        logo_alignment="center"
-                                        text="signin"
+                        {/* Password */}
+                        <InputField
+                            icon={Lock}
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={signupData.password}
+                            placeholder="Enter Password"
+                            onChange={handleChange}
+                            focusedField={focusedField}
+                            setFocusedField={setFocusedField}
+                            endIcon={
+                                showPassword ? (
+                                    <EyeOff
+                                        size={20}
+                                        className="cursor-pointer text-gray-500 hover:text-blue-600"
+                                        onClick={() => setShowPassword(false)}
                                     />
-                                </div>
+                                ) : (
+                                    <Eye
+                                        size={20}
+                                        className="cursor-pointer text-gray-500 hover:text-blue-600"
+                                        onClick={() => setShowPassword(true)}
+                                    />
+                                )
+                            }
+                        />
 
-                                {/* Facebook Button */}
-                                <button
-                                    onClick={handleFacebookLogin}
-                                    type="button"
-                                    className="w-full max-w-[320px] h-[40px] flex items-center justify-center gap-2 rounded-lg bg-[#1877F2] px-5 text-white transition hover:opacity-90"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                        className="h-5 w-5"
-                                    >
-                                        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.019 4.388 11.009 10.125 11.927v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.514c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.082 24 18.092 24 12.073z" />
-                                    </svg>
-                                    Sign in
-                                </button>
+                        {/* Confirm Password */}
+                        <InputField
+                            icon={Lock}
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmpassword"
+                            value={signupData.confirmpassword}
+                            placeholder="Confirm Password"
+                            onChange={handleChange}
+                            focusedField={focusedField}
+                            setFocusedField={setFocusedField}
+                            endIcon={
+                                showConfirmPassword ? (
+                                    <EyeOff
+                                        size={20}
+                                        className="cursor-pointer text-gray-500 hover:text-blue-600"
+                                        onClick={() => setShowConfirmPassword(false)}
+                                    />
+                                ) : (
+                                    <Eye
+                                        size={20}
+                                        className="cursor-pointer text-gray-500 hover:text-blue-600"
+                                        onClick={() => setShowConfirmPassword(true)}
+                                    />
+                                )
+                            }
+                        />
+
+                        {error && (
+                            <div className="md:col-span-2 text-sm text-red-300">
+                                {error}
                             </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`md:col-span-2 w-full rounded-lg py-3 font-semibold text-white ${loading
+                                ? "bg-blue-400 cursor-not-allowed"
+                                : "bg-blue-600 hover:bg-blue-700"
+                                }`}
+                        >
+                            {loading ? "Signing up..." : "Sign Up"}
+                        </button>
+                    </form>
+
+                    {/* Login Link */}
+                    <p className="mt-3 text-sm text-white">
+                        Already have an account?{" "}
+                        <Link to="/" className="text-blue-300 hover:underline">
+                            Login
+                        </Link>
+                    </p>
+
+                    {/* Social Login */}
+                    <div className="mt-8 text-center">
+                        <p className="mb-4 text-sm text-white">Or continue with</p>
+
+                        <div className="flex flex-col items-center gap-3">
+                            {/* Google Button */}
+                            <div className="w-full max-w-[320px] flex justify-center">
+                                <GoogleLogin
+                                    onSuccess={handleGoogleSuccess}
+                                    onError={handleGoogleError}
+                                    width="320"
+                                    logo_alignment="center"
+                                    text="signin"
+                                />
+                            </div>
+
+                            {/* Facebook Button */}
+                            <button
+                                onClick={handleFacebookLogin}
+                                type="button"
+                                className="w-full max-w-[320px] h-[40px] flex items-center justify-center gap-2 rounded-lg bg-[#1877F2] px-5 text-white transition hover:opacity-90"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    className="h-5 w-5"
+                                >
+                                    <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.019 4.388 11.009 10.125 11.927v-8.437H7.078v-3.49h3.047V9.413c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953h-1.514c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.082 24 18.092 24 12.073z" />
+                                </svg>
+                                Sign in
+                            </button>
                         </div>
                     </div>
+
+                    {/* Form Here */}
                 </div>
+
             </div>
         </div>
     );

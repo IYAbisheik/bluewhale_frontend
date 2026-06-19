@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
+    "@reduxjs/toolkit": "^2.12.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -17,16 +18,18 @@
     "react-datepicker": "^8.3.0",
     "react-dom": "^19.1.0",
     "react-facebook-login": "^4.1.1",
+    "react-redux": "^9.3.0",
     "react-router-dom": "^7.5.2",
     "react-scripts": "5.0.1",
+    "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test": "jest"
   },
   "eslintConfig": {
     "extends": [
@@ -47,6 +50,8 @@
     ]
   },
   "devDependencies": {
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "tailwindcss": "^3.4.19"
   }
 }
