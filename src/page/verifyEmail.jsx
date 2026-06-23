@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { verifyEmailApi } from "../api/auth/authApi";
 
@@ -13,9 +13,9 @@ const VerifyEmail = () => {
 
     useEffect(() => {
         verifyEmail();
-    }, []);
+    }, [verifyEmail]);
 
-    const verifyEmail = async () => {
+    const verifyEmail = useCallback(async() => {
         try {
             const response = await verifyEmailApi(token)
 
@@ -37,7 +37,7 @@ const VerifyEmail = () => {
                 "Invalid or expired verification link."
             );
         }
-    };
+    }, [token])
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">

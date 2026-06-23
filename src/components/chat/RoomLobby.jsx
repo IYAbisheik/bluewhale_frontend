@@ -1,4 +1,5 @@
 import React, {
+    useCallback,
     useEffect,
     useState
 } from "react";
@@ -115,10 +116,10 @@ const RoomLobby = () => {
 
         };
 
-    }, [roomId]);
+    }, [roomId, loadRoom]);
 
     const loadRoom =
-        async () => {
+        useCallback(async () => {
 
             try {
 
@@ -145,8 +146,7 @@ const RoomLobby = () => {
                 console.log(error);
 
             }
-
-        };
+        }, [roomId])
 
     const copyInviteCode =
         async () => {
