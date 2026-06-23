@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
-import { bgImg, signUpBgVideo } from "../utils/utils"
+import { signUpBgVideo } from "../utils/utils"
 import { User, Lock } from "lucide-react";
 import { loginApi } from '../api/auth/authApi'
 import { connectSocket } from '../socket/socket'
@@ -233,12 +233,12 @@ const Login = () => {
         )
     }
 
-    const handleLogout = () => {
-        if (window.FB) {
-            window.FB.logout(() => {
-            })
-        }
-    }
+    // const handleLogout = () => {
+    //     if (window.FB) {
+    //         window.FB.logout(() => {
+    //         })
+    //     }
+    // }
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden">

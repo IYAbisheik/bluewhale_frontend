@@ -43,7 +43,7 @@ const AddUser = () => {
                 })
             }
         }
-    }, [userid])
+    }, [userid, getCurrentuser?.users])
 
 
     const handleUsername = (e) => {

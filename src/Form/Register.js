@@ -146,12 +146,12 @@ const Register = () => {
         )
     }
 
-    const handleLogout = () => {
-        if (window.FB) {
-            window.FB.logout(() => {
-            })
-        }
-    }
+    // const handleLogout = () => {
+    //     if (window.FB) {
+    //         window.FB.logout(() => {
+    //         })
+    //     }
+    // }
 
     const handleChange = (e) => {
         setSignupData({

@@ -115,7 +115,7 @@ const RoomLobby = () => {
 
         };
 
-    }, [roomId]);
+    }, [roomId, loadRoom]);
 
     const loadRoom =
         async () => {

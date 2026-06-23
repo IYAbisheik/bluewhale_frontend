@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import man from "../Assets/Images/man.png";
-import others from "../Assets/Images/transgender.png";
-import women from "../Assets/Images/woman.png";
+// import man from "../Assets/Images/man.png";
+// import others from "../Assets/Images/transgender.png";
+// import women from "../Assets/Images/woman.png";
 import homePage from "../Assets/Images/homePage.jpg";
 import { useNavigate } from "react-router-dom";
-import Card from "react-bootstrap/Card";
-import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
+// import Card from "react-bootstrap/Card";
+// import Col from "react-bootstrap/Col";
+// import Row from "react-bootstrap/Row";
 import { toast } from "sonner";
 import { disable2FAApi, generate2FAApi, verify2FAApi } from "../api/auth/twoFactorSlice";
-import { token } from "../utils/utils";
+// import { token } from "../utils/utils";
 import { logout } from "../api/auth/authApi";
-import { Socket } from "socket.io-client";
+// import { Socket } from "socket.io-client";
 import { disconnectSocket } from "../socket/socket";
 
 const Dashboard = () => {
@@ -20,10 +20,10 @@ const Dashboard = () => {
     const hiddenVideoRef = useRef(null);
     const canvasRef = useRef(null);
 
-    const [adminData, setAdminData] = useState([]);
+    // const [adminData, setAdminData] = useState([]);
     const [preview, setPreview] = useState(null);
     const [duration, setDuration] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
+    // const [isPlaying, setIsPlaying] = useState(false);
     const [is2FAEnabled, setIs2FAEnabled] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const [showQRModal, setShowQRModal] = useState(false);
@@ -31,19 +31,19 @@ const Dashboard = () => {
     const [otp, setOtp] = useState("");
 
     const loggedUser = JSON.parse(localStorage.getItem("Currentuser"));
-    const allUsers = JSON.parse(localStorage.getItem("Users")) || [];
+    // const allUsers = JSON.parse(localStorage.getItem("Users")) || [];
 
     const userData = loggedUser?.users;
 
     useEffect(() => {
-        if (userData) {
-            setAdminData(userData);
-        }
+        // if (userData) {
+        //     setAdminData(userData);
+        // }
 
         if (loggedUser?.is2FAEnabled) {
             setIs2FAEnabled(true);
         }
-    }, []);
+    }, [loggedUser?.is2FAEnabled]);
 
     useEffect(() => {
         const closeMenu = () => setShowProfileMenu(false);
@@ -190,38 +190,38 @@ const Dashboard = () => {
         }
     };
 
-    const handleDelete = (userid) => {
-        const updatedData = adminData.filter(
-            (user) => userid !== user.userid
-        );
+    // const handleDelete = (userid) => {
+    //     const updatedData = adminData.filter(
+    //         (user) => userid !== user.userid
+    //     );
 
-        const updatedCurrent = {
-            ...loggedUser,
-            users: updatedData,
-        };
+    //     const updatedCurrent = {
+    //         ...loggedUser,
+    //         users: updatedData,
+    //     };
 
-        const updatedAll = allUsers.map((user) =>
-            user.id === loggedUser.id ? updatedCurrent : user
-        );
+    //     const updatedAll = allUsers.map((user) =>
+    //         user.id === loggedUser.id ? updatedCurrent : user
+    //     );
 
-        setAdminData(updatedData);
+    //     setAdminData(updatedData);
 
-        localStorage.setItem(
-            "Currentuser",
-            JSON.stringify(updatedCurrent)
-        );
+    //     localStorage.setItem(
+    //         "Currentuser",
+    //         JSON.stringify(updatedCurrent)
+    //     );
 
-        localStorage.setItem(
-            "Users",
-            JSON.stringify(updatedAll)
-        );
+    //     localStorage.setItem(
+    //         "Users",
+    //         JSON.stringify(updatedAll)
+    //     );
 
-        toast.success("User deleted successfully");
-    };
+    //     toast.success("User deleted successfully");
+    // };
 
-    const handleEdit = (userid) => {
-        navigate(`/edituser/${userid}`);
-    };
+    // const handleEdit = (userid) => {
+    //     navigate(`/edituser/${userid}`);
+    // };
 
     return (
         <div
