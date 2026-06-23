@@ -9,7 +9,7 @@ export const connectSocket = (token) => {
     }
 
     socket = io(
-        process.env.REACT_APP_API_URL,
+        process.env.REACT_APP_API_URL_ONLY,
         {
             auth: {
                 token,

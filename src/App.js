@@ -16,6 +16,7 @@ import { connectSocket } from "./socket/socket";
 import JoinRoom from "./components/chat/JoinRoom";
 import CreateRoom from "./components/chat/CreateRoom";
 import RoomCreated from "./components/chat/RoomCreated";
+import RoomLobby from "./components/chat/RoomLobby";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
       {path: '/edituser/:userid', element: <AddUser/>},
       {path: '/create-room', element: <CreateRoom/>},
       {path: '/join-room', element: <JoinRoom/>},
+      {path: '/rooms/:roomId/lobby', element: <RoomLobby/>},
       {path: '/room-created', element: <RoomCreated/>}    
     ]
   }
