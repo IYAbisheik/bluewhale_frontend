@@ -13,7 +13,7 @@ const VerifyEmail = () => {
 
     useEffect(() => {
         verifyEmail();
-    }, [verifyEmail]);
+    }, []);
 
     const verifyEmail = async () => {
         try {

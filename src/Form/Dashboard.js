@@ -33,7 +33,7 @@ const Dashboard = () => {
     const loggedUser = JSON.parse(localStorage.getItem("Currentuser"));
     // const allUsers = JSON.parse(localStorage.getItem("Users")) || [];
 
-    const userData = loggedUser?.users;
+    // const userData = loggedUser?.users;
 
     useEffect(() => {
         // if (userData) {
