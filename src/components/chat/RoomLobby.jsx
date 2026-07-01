@@ -33,7 +33,7 @@ const RoomLobby = () => {
     const { roomId } =
         useParams();
 
-                console.log("LINE197", roomId);
+    console.log("LINE197", roomId);
     const navigate =
         useNavigate();
 
@@ -43,80 +43,6 @@ const RoomLobby = () => {
     const [members,
         setMembers] =
         useState([]);
-
-    useEffect(() => {
-
-        loadRoom();
-
-        const socket =
-            getSocket();
-
-        if (!socket) return;
-
-        socket.emit(
-            "join-room",
-            roomId
-        );
-
-        socket.on(
-            "user-joined",
-            (user) => {
-
-                setMembers(
-                    (prev) => {
-
-                        const exists =
-                            prev.find(
-                                (m) =>
-                                    m.user.id ===
-                                    user.id
-                            );
-
-                        if (exists)
-                            return prev;
-
-                        return [
-                            ...prev,
-                            {
-                                user
-                            }
-                        ];
-
-                    }
-                );
-
-            }
-        );
-
-        socket.on(
-            "user-left",
-            (userId) => {
-
-                setMembers(
-                    (prev) =>
-                        prev.filter(
-                            (m) =>
-                                m.user.id !==
-                                userId
-                        )
-                );
-
-            }
-        );
-
-        return () => {
-
-            socket.off(
-                "user-joined"
-            );
-
-            socket.off(
-                "user-left"
-            );
-
-        };
-
-    }, [roomId, loadRoom]);
 
     const loadRoom =
         useCallback(async () => {
@@ -147,6 +73,37 @@ const RoomLobby = () => {
 
             }
         }, [roomId])
+
+    useEffect(() => {
+        loadRoom();
+
+        const socket = getSocket();
+
+        if (!socket) return;
+
+        socket.emit("join-room", roomId);
+
+        socket.on("user-joined", (user) => {
+            setMembers((prev) => {
+                const exists = prev.find((m) => m.user.id === user.id);
+
+                if (exists) return prev;
+
+                return [...prev, { user }];
+            });
+        });
+
+        socket.on("user-left", (userId) => {
+            setMembers((prev) =>
+                prev.filter((m) => m.user.id !== userId)
+            );
+        });
+
+        return () => {
+            socket.off("user-joined");
+            socket.off("user-left");
+        };
+    }, [roomId, loadRoom]);
 
     const copyInviteCode =
         async () => {
@@ -194,7 +151,9 @@ const RoomLobby = () => {
                 Loading...
             </div>
         );
-        
+
+    // console.log("LINE198", hello);
+
     return (
         <div className="min-h-screen bg-slate-950 text-white">
 

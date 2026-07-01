@@ -273,6 +273,12 @@ const Dashboard = () => {
                                 </button>
 
                                 <button
+                                    className="w-full px-4 py-3 text-left hover:bg-gray-100"
+                                    onClick={() => navigate("/profile")}>
+                                    Profile
+                                </button>
+
+                                <button
                                     onClick={() => {
                                         handleLogout()
                                         // setShowProhandleLogoutfileMenu(false);
@@ -367,58 +373,6 @@ const Dashboard = () => {
                 >
                     Join Room
                 </button>
-
-            </div>
-
-            <div className="w-[95%] rounded-2xl overflow-hidden bg-black shadow-xl">
-
-                <video
-                    ref={videoRef}
-                    controls
-                    className="w-full h-[500px]"
-                    onLoadedMetadata={() =>
-                        setDuration(videoRef.current.duration)
-                    }
-                >
-                    <source src={"/file_example_MP4_640_3MG.mp4"} type="video/mp4" />
-                </video>
-
-                {/* Timeline Preview Area */}
-                <div
-                    className="relative h-6 cursor-pointer"
-                    onMouseMove={handleTimelineHover}
-                    onMouseLeave={handleTimelineLeave}
-                >
-                    {preview && (
-                        <div
-                            className="absolute bottom-8 -translate-x-1/2"
-                            style={{ left: preview.x }}
-                        >
-                            <img
-                                src={preview.image}
-                                alt="preview"
-                                className="w-40 rounded-lg border border-white shadow-2xl"
-                            />
-
-                            <div className="bg-black text-white text-xs text-center py-1 rounded-b-lg">
-                                {Math.floor(preview.time / 60)}:
-                                {String(
-                                    Math.floor(preview.time % 60)
-                                ).padStart(2, "0")}
-                            </div>
-                        </div>
-                    )}
-                </div>
-                <video
-                    ref={hiddenVideoRef}
-                    src={"/file_example_MP4_640_3MG.mp4"}
-                    style={{ display: "none" }}
-                />
-
-                <canvas
-                    ref={canvasRef}
-                    style={{ display: "none" }}
-                />
 
             </div>
         </div>

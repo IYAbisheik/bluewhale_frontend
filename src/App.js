@@ -17,6 +17,7 @@ import JoinRoom from "./components/chat/JoinRoom";
 import CreateRoom from "./components/chat/CreateRoom";
 import RoomCreated from "./components/chat/RoomCreated";
 import RoomLobby from "./components/chat/RoomLobby";
+import Profile from "./components/profile";
 
 const router = createBrowserRouter([
   {
@@ -37,7 +38,8 @@ const router = createBrowserRouter([
       {path: '/create-room', element: <CreateRoom/>},
       {path: '/join-room', element: <JoinRoom/>},
       {path: '/rooms/:roomId/lobby', element: <RoomLobby/>},
-      {path: '/room-created', element: <RoomCreated/>}    
+      {path: '/room-created', element: <RoomCreated/>},
+      {path: '/profile', element: <Profile/>}
     ]
   }
 ])

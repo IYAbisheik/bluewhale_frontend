@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
-import { signUpBgVideo } from "../utils/utils"
+import { signUpBgVideo, storeAuthData } from "../utils/utils"
 import { User, Lock } from "lucide-react";
 import { loginApi } from '../api/auth/authApi'
 import { connectSocket } from '../socket/socket'
+import Loading from "../components/loading";
+import { toast } from 'sonner'
 
 const FACEBOOK_APP_ID = process.env.REACT_APP_FACEBOOK_APP_ID;
 
@@ -15,8 +17,8 @@ const Login = () => {
         email: '',
         password: ''
     })
-    const [error, setError] = useState('')
     const [focusedField, setFocusedField] = useState("");
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -57,7 +59,6 @@ const Login = () => {
     }, [])
 
     const handleChange = (e) => {
-        setError('')
         setLoginData({
             ...loginData,
             [e.target.name]: e.target.value
@@ -68,19 +69,17 @@ const Login = () => {
 
         e.preventDefault();
 
-        setError('');
-
         try {
 
             if (
                 !loginData.email ||
                 !loginData.password
             ) {
-                setError(
-                    'Enter email and password'
-                );
+                toast.error("Enter email and password");
                 return;
             }
+
+            setLoading(true);
 
             const payload = {
                 email: loginData.email,
@@ -89,11 +88,6 @@ const Login = () => {
 
             const response =
                 await loginApi(payload);
-
-            console.log(
-                'LOGIN RESPONSE:',
-                response
-            );
 
             // 2FA CHECK
 
@@ -113,39 +107,19 @@ const Login = () => {
 
             connectSocket(response?.accessToken || '');
 
-            // STORE TOKEN
-
-            localStorage.setItem(
-                'accessToken',
-                response?.accessToken
-            );
-
-            localStorage.setItem(
-                'Currentuser',
-                JSON.stringify(
-                    response?.user
-                )
-            );
-
-            localStorage.setItem(
-                'isloggedIn',
-                'true'
-            );
+            storeAuthData(response)
 
             navigate('/dashboard');
 
         } catch (error) {
-
-            console.log(error);
-
-            setError(
+            toast.error(
                 error.response?.data?.message ||
-                'Invalid email or password'
+                "Invalid email or password"
             );
+        } finally {
+            setLoading(false)
         }
     };
-
-    console.log("LINE149", loginData);
 
 
     const handleGoogleSuccess = (credentialResponse) => {
@@ -192,41 +166,36 @@ const Login = () => {
             navigate('/dashboard')
         } catch (err) {
             console.error('Google Login Error:', err)
-            setError('Google login failed')
+            toast.error("Google login failed");
         }
     }
 
     const handleGoogleError = () => {
-        setError('Google login failed')
+        toast.error("Google login failed");
     }
 
     const handleFacebookLogin = () => {
-        setError('')
 
         if (!window.FB) {
-            setError('Facebook SDK not loaded yet')
+            toast.error("Facebook SDK not loaded yet");
             return
         }
 
         window.FB.login(
             function (loginResponse) {
-                console.log('FB Login Response:', loginResponse)
-
                 if (loginResponse.authResponse) {
                     window.FB.api(
                         '/me',
                         { fields: 'id,name,email,picture' },
                         function (response) {
-                            console.log('Facebook User Profile:', response)
-
                             if (!response?.id) {
-                                setError('Facebook login failed')
+                                toast.error("Facebook login failed");
                                 return
                             }
                         }
                     )
                 } else {
-                    setError('Facebook login cancelled or failed')
+                    toast.error("Facebook login cancelled or failed");
                 }
             },
             { scope: 'public_profile,email' }
@@ -341,19 +310,13 @@ const Login = () => {
                             />
                         </div>
 
-                        {/* Error */}
-                        {error && (
-                            <div className="text-sm text-red-300">
-                                {error}
-                            </div>
-                        )}
-
                         {/* Login Button */}
                         <button
                             className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white transition hover:bg-blue-700"
                             type="submit"
+                            disabled={loading}
                         >
-                            Sign in
+                            {loading ? "Signing in" : "Sign in"}
                         </button>
                     </form>
 
@@ -402,6 +365,9 @@ const Login = () => {
                                 </svg>
                                 Sign in
                             </button>
+                            {loading && <Loading
+                                fullScreen
+                                text="Logging in..." />}
                         </div>
                     </div>
 

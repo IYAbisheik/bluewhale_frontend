@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@apollo/client": "^4.2.3",
     "@react-oauth/google": "^0.13.4",
     "@reduxjs/toolkit": "^2.12.0",
     "@testing-library/dom": "^10.4.0",
@@ -11,6 +12,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.16.1",
     "bootstrap": "^5.3.5",
+    "graphql": "^16.14.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.8.0",
     "react": "^19.1.0",

@@ -70,3 +70,25 @@ export const InputField = ({
         </div>
     );
 };
+
+export const loggedUser = JSON.parse(localStorage.getItem("Currentuser")) || {};
+
+export const storeAuthData = ({
+    accessToken,
+    user,
+}) => {
+    localStorage.setItem(
+        "accessToken",
+        accessToken
+    );
+
+    localStorage.setItem(
+        "Currentuser",
+        JSON.stringify(user)
+    );
+
+    localStorage.setItem(
+        "isloggedIn",
+        "true"
+    );
+};
